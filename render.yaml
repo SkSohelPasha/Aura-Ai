@@ -7,13 +7,15 @@ services:
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: APP_ENV
-        value: production
+        value: development
       - key: PYTHON_VERSION
         value: 3.12.0
       - key: SECRET_KEY
         scope: project
+        # ⚠️  SET IN RENDER DASHBOARD: Must be >32 chars, NOT default value
       - key: ALLOWED_ORIGINS
         scope: project
+        # ⚠️  SET IN RENDER DASHBOARD: No wildcards! Use specific domains
       - key: user
         scope: project
       - key: password

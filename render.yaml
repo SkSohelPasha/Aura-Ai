@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: aura-ai-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: SECRET_KEY
+        scope: project
+      - key: ALLOWED_ORIGINS
+        scope: project
+      - key: user
+        scope: project
+      - key: password
+        scope: project
+      - key: host
+        scope: project
+      - key: port
+        scope: project
+      - key: dbname
+        scope: project
+      - key: OPENAI_API_KEY
+        scope: project
+      - key: GOOGLE_API_KEY
+        scope: project
+      - key: GOOGLE_CLIENT_ID
+        scope: project

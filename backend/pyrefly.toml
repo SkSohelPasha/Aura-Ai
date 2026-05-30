@@ -1,0 +1,12 @@
+# Pyrefly configuration for Aura AI backend
+# Points the type checker to the project venv so `app.*` imports resolve correctly.
+
+python_interpreter = "venv/Scripts/python.exe"
+
+# Treat the backend directory as the project root so `app` is a top-level package
+project_root = "."
+
+# Suppress errors from third-party stubs that don't ship type info
+[errors]
+# ignore missing stubs for langchain / google-genai – they have partial type info
+missing_module_source = "warn"

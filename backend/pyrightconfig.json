@@ -1,0 +1,21 @@
+{
+  "venvPath": ".",
+  "venv": "venv",
+  "pythonVersion": "3.12",
+  "pythonPlatform": "Windows",
+  "include": [
+    "app",
+    "scratch",
+    "test_*.py",
+    "query_chroma.py"
+  ],
+  "exclude": [
+    "chroma_db",
+    "uploads",
+    "venv"
+  ],
+  "reportMissingModuleSource": "none",
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": "none",
+  "useLibraryCodeForTypes": true
+}

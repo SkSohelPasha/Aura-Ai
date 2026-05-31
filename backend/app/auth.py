@@ -33,7 +33,7 @@ def create_access_token(user_id: str, email: str) -> str:
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
     payload = {
-        "sub": str(user_id),
+        "sub": user_id,
         "email": email,
         "exp": expire,
         "iat": datetime.now(timezone.utc),

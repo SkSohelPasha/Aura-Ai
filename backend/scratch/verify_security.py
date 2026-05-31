@@ -277,7 +277,7 @@ def test_production_safety_checks():
 def test_rag_isolation_structure():
     print("\n[7] RAG Data Isolation (Metadata Filter Logic)")
 
-    def build_filter(chat_id: str = None, user_id: str = None) -> dict:
+    def build_filter(chat_id: str | None = None, user_id: str | None = None) -> dict:
         if chat_id and user_id:
             return {
                 "$or": [

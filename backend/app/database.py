@@ -1,4 +1,5 @@
 import logging
+from typing import AsyncGenerator
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
@@ -74,7 +75,7 @@ class Base(DeclarativeBase):
 
 # ── Dependency injection ───────────────────────────────────────────────────────
 
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session

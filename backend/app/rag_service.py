@@ -194,7 +194,7 @@ def init_rag_pipeline():
     def format_docs(docs):
         return "\n\n".join([d.page_content for d in docs])
 
-    def retrieve_with_filter(query: str, chat_id: str = None, user_id: str = None) -> list:
+    def retrieve_with_filter(query: str, chat_id: str | None = None, user_id: str | None = None) -> list:
         if _vectorstore is None:
             return []
         
@@ -225,7 +225,8 @@ def init_rag_pipeline():
             }
             
         logger.info("RAG similarity search for query: '%s' using filter: %s", query, filter_query)
-        return _vectorstore.similarity_search(query, k=5, filter=filter_query)
+        # pyrefly: ignore [bad-argument-type]
+        return _vectorstore.similarity_search(query, k=5, filter=filter_query)        
         
     _rag_chain = (
         RunnableParallel({
@@ -238,7 +239,7 @@ def init_rag_pipeline():
         | StrOutputParser()
     )
 
-def ingest_uploaded_file(file_path: str, chat_id: str = None, user_id: str = None) -> int:
+def ingest_uploaded_file(file_path: str, chat_id: str | None = None, user_id: str | None = None) -> int:
     """Dynamic File Upload — called when user uploads a file, isolated by chat and user context"""
     global _vectorstore
     
@@ -277,7 +278,7 @@ def ingest_uploaded_file(file_path: str, chat_id: str = None, user_id: str = Non
         logger.error("Error ingesting file %s: %s", file_path, e)
         return 0
 
-async def get_rag_response(query: str, history: str = "", chat_id: str = None, user_id: str = None) -> str:
+async def get_rag_response(query: str, history: str = "", chat_id: str | None = None, user_id: str | None = None) -> str:
     """Get response from RAG chain with chat isolated filtering"""
     if _rag_chain is None:
         return "RAG pipeline is not initialized."

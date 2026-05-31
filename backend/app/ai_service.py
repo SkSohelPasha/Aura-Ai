@@ -99,7 +99,7 @@ def format_messages_for_gemini(messages: list[dict]) -> list[types.Content]:
 
 from app.rag_service import get_rag_response
 
-async def get_ai_response(messages: list[dict], chat_id: str = None, user_id: str = None) -> str:
+async def get_ai_response(messages: list[dict], chat_id: str | None = None, user_id: str | None = None) -> str:
     """Get a complete AI response (non-streaming)."""
     # Extract only the last user message for the vector search query to prevent semantic pollution
     user_query = messages[-1]["content"] if messages else ""
@@ -131,7 +131,7 @@ async def get_ai_response(messages: list[dict], chat_id: str = None, user_id: st
     return await get_rag_response(query=user_query, history=history_str, chat_id=chat_id, user_id=user_id)
 
 
-async def stream_ai_response(messages: list[dict], chat_id: str = None, user_id: str = None) -> AsyncGenerator[str, None]:
+async def stream_ai_response(messages: list[dict], chat_id: str | None = None, user_id: str | None = None) -> AsyncGenerator[str, None]:
     """Stream AI response chunks."""
     response = await get_ai_response(messages, chat_id=chat_id, user_id=user_id)
     

@@ -22,6 +22,46 @@ logger = logging.getLogger(__name__)
 _vectorstore = None
 _rag_chain = None
 
+
+# ── Module-level RAG helpers ───────────────────────────────────────────────────
+
+def _format_docs(docs: list) -> str:
+    return "\n\n".join([d.page_content for d in docs])
+
+
+def _retrieve_with_filter(query: str, chat_id: str | None = None, user_id: str | None = None) -> list:
+    if _vectorstore is None:
+        return []
+
+    if chat_id and user_id:
+        filter_query: dict = {
+            "$or": [
+                {
+                    "$and": [
+                        {"chat_id": "global"},
+                        {"user_id": "global"}
+                    ]
+                },
+                {
+                    "$and": [
+                        {"chat_id": chat_id},
+                        {"user_id": user_id}
+                    ]
+                }
+            ]
+        }
+    else:
+        filter_query = {
+            "$and": [
+                {"chat_id": "global"},
+                {"user_id": "global"}
+            ]
+        }
+
+    logger.info("RAG similarity search for query: '%s' using filter: %s", query, filter_query)
+    # pyrefly: ignore [bad-argument-type]
+    return _vectorstore.similarity_search(query, k=5, filter=filter_query)
+
 # Custom Prompt
 RAG_SYSTEM_PROMPT = """You are Aura, a modern AI developer assistant designed to help users with technical problem solving, coding, debugging, architecture, and productivity.
 
@@ -191,46 +231,9 @@ def init_rag_pipeline():
     # pyrefly: ignore [missing-import]
     from langchain_core.output_parsers import StrOutputParser
 
-    def format_docs(docs):
-        return "\n\n".join([d.page_content for d in docs])
-
-    def retrieve_with_filter(query: str, chat_id: str | None = None, user_id: str | None = None) -> list:
-        if _vectorstore is None:
-            return []
-        
-        # If chat_id and user_id are provided, search chunks where they are global OR match user_id AND chat_id
-        if chat_id and user_id:
-            filter_query = {
-                "$or": [
-                    {
-                        "$and": [
-                            {"chat_id": "global"},
-                            {"user_id": "global"}
-                        ]
-                    },
-                    {
-                        "$and": [
-                            {"chat_id": chat_id},
-                            {"user_id": user_id}
-                        ]
-                    }
-                ]
-            }
-        else:
-            filter_query = {
-                "$and": [
-                    {"chat_id": "global"},
-                    {"user_id": "global"}
-                ]
-            }
-            
-        logger.info("RAG similarity search for query: '%s' using filter: %s", query, filter_query)
-        # pyrefly: ignore [bad-argument-type]
-        return _vectorstore.similarity_search(query, k=5, filter=filter_query)        
-        
     _rag_chain = (
         RunnableParallel({
-            "context": lambda x: format_docs(retrieve_with_filter(x["query"], x.get("chat_id"), x.get("user_id"))),
+            "context": lambda x: _format_docs(_retrieve_with_filter(x["query"], x.get("chat_id"), x.get("user_id"))),
             "history": lambda x: x["history"],
             "question": lambda x: x["query"]
         })

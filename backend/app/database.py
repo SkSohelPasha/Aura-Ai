@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import pool
 from dotenv import load_dotenv
 from urllib.parse import quote_plus
 import os
@@ -52,12 +53,18 @@ ASYNC_DATABASE_URL = (
     f"@{HOST}:{PORT}/{DBNAME}?ssl=require"
 )
 
+# ✅ FIXED ENGINE CONFIG (PgBouncer safe)
 async_engine = create_async_engine(
     ASYNC_DATABASE_URL,
     echo=os.getenv("APP_ENV") == "development",
     pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
+
+    # 🔥 CRITICAL FIX FOR PGBouncer
+    poolclass=pool.NullPool,
+
+    connect_args={
+        "statement_cache_size": 0
+    },
 )
 
 AsyncSessionLocal = async_sessionmaker(

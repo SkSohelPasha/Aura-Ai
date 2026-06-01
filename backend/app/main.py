@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import Any
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
@@ -19,16 +19,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-from fastapi import Request
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     logger.info("Starting up Aura AI Backend (env: %s)...", settings.APP_ENV)
-    
+
     # Production security checks
     if settings.APP_ENV != "development":
-        # Enforce strong SECRET_KEY
         if (
             settings.SECRET_KEY == "change-me-in-production-at-least-32-characters-long"
             or settings.SECRET_KEY == "local-dev-secret-key-change-in-production-min-32-chars"
@@ -37,22 +33,29 @@ async def lifespan(app: FastAPI):
             logger.critical("Insecure SECRET_KEY configured for production environment!")
             raise RuntimeError("Insecure SECRET_KEY configured for production environment")
 
-        # Enforce non-wildcard ALLOWED_ORIGINS
         if "*" in settings.allowed_origins_list:
             logger.critical("Wildcard CORS origin '*' is not allowed in production environment!")
             raise RuntimeError("Wildcard CORS origin is not allowed in production environment")
 
     try:
         await init_db()
-        init_rag_pipeline()
-        logger.info("Application startup and initialization completed successfully.")
+
+        # ✅ SAFE RAG INIT (prevents crash from breaking API routes)
+        try:
+            init_rag_pipeline()
+            logger.info("RAG pipeline initialized successfully.")
+        except Exception as rag_err:
+            logger.error("RAG initialization failed but server will continue: %s", rag_err)
+
+        logger.info("Application startup completed successfully.")
+
     except Exception as exc:
         logger.critical("Error during backend startup: %s", exc)
         raise
-    yield
-    # Shutdown
-    logger.info("Shutting down Aura AI Backend...")
 
+    yield
+
+    logger.info("Shutting down Aura AI Backend...")
 
 
 app = FastAPI(
@@ -74,13 +77,15 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
-    
+
     if settings.APP_ENV != "development":
         response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
-        
+
     return response
 
+
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 cors_kwargs: dict[str, Any] = {
     "allow_credentials": True,
     "allow_methods": ["*"],
@@ -107,4 +112,3 @@ app.include_router(files.router, prefix="/api/v1")
 @app.get("/health")
 async def health():
     return {"status": "ok", "version": "1.0.0"}
-

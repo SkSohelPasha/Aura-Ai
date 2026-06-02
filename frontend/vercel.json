@@ -2,11 +2,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://aura-ai-backend-1-1mug.onrender.com/:path*"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "https://aura-ai-backend-1-1mug.onrender.com/:path*"
+      "destination": "https://aura-ai-backend-1-1mug.onrender.com/api/v1/:path*"
     }
   ]
 }
